@@ -252,6 +252,12 @@ namespace SpaceInvaders
             return false;
         }
 
+        /**
+         * @brief
+         * Checks if a Rectangle is an enemyBullet. 
+         * @param enemyBullet Rectangle to be checked.
+         * @return true if the Rectangle is an enemyBullet, false otherwise.
+         */
         private bool IsEnemyBullet(Rectangle enemyBullet)
         {
             if (enemyBullet is Rectangle && (string)enemyBullet.Tag == "enemyBullet")
