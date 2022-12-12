@@ -189,36 +189,37 @@ namespace SpaceInvaders
                 // Setting the enemy skin
                 switch (enemies)
                 {
+                    // D:\Developer\SpaceInvaders\Images\invader1.gif
                     case 1:
-                        enemySkin.ImageSource = new BitmapImage(new Uri("pack://application:,,,/Images/enemy1.png"));
+                        enemySkin.ImageSource = new BitmapImage(new Uri("pack://application:,,,/Images/invader1.gif"));
                         break;
                         
                     case 2:
-                        enemySkin.ImageSource = new BitmapImage(new Uri("pack://application:,,,/Images/enemy2.png"));
+                        enemySkin.ImageSource = new BitmapImage(new Uri("pack://application:,,,/Images/invader2.gif"));
                         break;
                         
                     case 3:
-                        enemySkin.ImageSource = new BitmapImage(new Uri("pack://application:,,,/Images/enemy3.png"));
+                        enemySkin.ImageSource = new BitmapImage(new Uri("pack://application:,,,/Images/invader3.gif"));
                         break;
                         
                     case 4:
-                        enemySkin.ImageSource = new BitmapImage(new Uri("pack://application:,,,/Images/enemy4.png"));
+                        enemySkin.ImageSource = new BitmapImage(new Uri("pack://application:,,,/Images/invader4.gif"));
                         break;
 
                     case 5:
-                        enemySkin.ImageSource = new BitmapImage(new Uri("pack://application:,,,/Images/enemy5.png"));
+                        enemySkin.ImageSource = new BitmapImage(new Uri("pack://application:,,,/Images/invader5.gif"));
                         break;
 
                     case 6:
-                        enemySkin.ImageSource = new BitmapImage(new Uri("pack://application:,,,/Images/enemy6.png"));
+                        enemySkin.ImageSource = new BitmapImage(new Uri("pack://application:,,,/Images/invader6.gif"));
                         break;
 
                     case 7:
-                        enemySkin.ImageSource = new BitmapImage(new Uri("pack://application:,,,/Images/enemy7.png"));
+                        enemySkin.ImageSource = new BitmapImage(new Uri("pack://application:,,,/Images/invader7.gif"));
                         break;
 
                     case 8:
-                        enemySkin.ImageSource = new BitmapImage(new Uri("pack://application:,,,/Images/enemy8.png"));
+                        enemySkin.ImageSource = new BitmapImage(new Uri("pack://application:,,,/Images/invader8.gif"));
                         break;
                 }
             }
