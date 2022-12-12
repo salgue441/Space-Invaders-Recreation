@@ -224,7 +224,179 @@ namespace SpaceInvaders
             }
         }
 
+        /**
+         * @brief
+         * Checks if a rectangle is a bullet. 
+         * @param bullet Rectangle to be checked. 
+         * @return true if the Rectangle is a bullet, false otherwise.
+         */
+        private bool IsBullet(Rectangle bullet)
+        {
+            if (bullet is Rectangle && (string)bullet.Tag == "bullet")
+                return true;
+
+            return false;
+        }
+        
+        /**
+         * @brief
+         * Checks if a Rectangle is an enemy.
+         * @param enemy Rectangle to be checked.
+         * @return true if the Rectangle is an enemy, false otherwise.
+         */
+        private bool IsEnemy(Rectangle enemy)
+        {
+            if (enemy is Rectangle && (string)enemy.Tag == "enemy")
+                return true;
+
+            return false;
+        }
+
+        private bool IsEnemyBullet(Rectangle enemyBullet)
+        {
+            if (enemyBullet is Rectangle && (string)enemyBullet.Tag == "enemyBullet")
+                return true;
+
+            return false;
+        }
+
+        /**
+         * @brief
+         * Handles Collision Detection for the GameEngine function. 
+         * @param player Rect object to be checked for collisions.
+         * @return void
+         */
+        private void CollisionDetection(Rect player)
+        {
+            foreach (var x in GameCanvas.Children.OfType<Rectangle>())
+            {
+                if (IsBullet(x))
+                {
+                    Canvas.SetTop(x, Canvas.GetTop(x) - 20);
+                    Rect bullet = new Rect(Canvas.GetLeft(x), Canvas.GetTop(x), x.Width, x.Height);
+
+                    if (Canvas.GetTop(x) < 10)
+                        itemsToRemove.Add(x);
+
+                    foreach(var y in GameCanvas.Children.OfType<Rectangle>())
+                    {
+                        if (IsEnemy(y))
+                        {
+                            Rect enemy = new Rect(Canvas.GetLeft(y), Canvas.GetTop(y), y.Width, y.Height);
+
+                            if (bullet.IntersectsWith(enemy))
+                            {
+                                itemsToRemove.Add(x);
+                                itemsToRemove.Add(y);
+
+                                totalEnemies -= 1;
+                            }
+                        }
+                    }
+
+                    if (IsEnemy(x))
+                    {
+                        // Moving it toward the right side of the screen
+                        Canvas.SetLeft(x, Canvas.GetLeft(x) + enemySpeed);
+
+                        if (Canvas.GetLeft(x) > 820)
+                        {
+                            Canvas.SetLeft(x, -80);
+                            Canvas.SetTop(x, Canvas.GetTop(x) + (x.Height + 10));
+                        }
+
+                        Rect enemy = new Rect(Canvas.GetLeft(x), Canvas.GetTop(x), x.Width, x.Height);
+
+                        // Checking for player collision with enemy objects.s
+                        if (player.IntersectsWith(enemy))
+                        {
+                            dispatcherTimer.Stop();
+                            MessageBox.Show("You Died.");
+                        }
+                    }
+
+                    if (IsEnemyBullet(x))
+                    {
+                        Canvas.SetTop(x, Canvas.GetTop(x) + 10);
+
+                        if (Canvas.GetTop(x) > 480)
+                            itemsToRemove.Add(x);
+
+                        Rect enemyBullets = new Rect(Canvas.GetLeft(x), Canvas.GetTop(x), x.Width, x.Height);
+
+                        // Checking for player's collision with enemyBullet objects.
+                        if (enemyBullets.IntersectsWith(player))
+                        {
+                            dispatcherTimer.Stop();
+                            MessageBox.Show("You Died.");
+                        }
+                    }
+                }
+
+                // Garbage Collection Loop
+                foreach (Rectangle y in itemsToRemove)
+                    GameCanvas.Children.Remove(y);
+            }
+        }
+
+        /**
+         * @brief
+         * Game Engine Event Handler. This event will trigger every 20ms.
+         * @param sender The object that sent the event.
+         * @param e The event arguments.
+         * @return void
+         */
         private void gameEngine(object sender, EventArgs e)
-        { }
+        {
+            Rect player = new Rect(Canvas.GetLeft(PlayerRec), Canvas.GetTop(PlayerRec), 
+                PlayerRec.Width, PlayerRec.Height);
+
+            // Showing the remaining enemies
+            EnemiesLeft.Content = "Enemies Left: " + totalEnemies;
+
+            // Player movement
+            if (goLeft && Canvas.GetLeft(PlayerRec) > 0)
+                Canvas.SetLeft(PlayerRec, Canvas.GetLeft(PlayerRec) - 10);
+
+            else if (goRight && Canvas.GetLeft(PlayerRec) + 80 < Application.Current.MainWindow.Width)
+                Canvas.SetLeft(PlayerRec, Canvas.GetLeft(PlayerRec) + 10);
+
+            // Bullet timer
+            bulletTimer -= 3;
+
+            if (bulletTimer < 0)
+            {
+                SpawnEnemyBullets((Canvas.GetLeft(PlayerRec) + 20), 10);
+                bulletTimer = bulletTimerLimit;
+            }
+
+            // Increasing enemies speed when the number decreases
+            if (totalEnemies < 75)
+                enemySpeed = 8;
+
+            else if (totalEnemies < 50)
+                enemySpeed = 10;
+
+            else if (totalEnemies < 40)
+                enemySpeed = 15;
+
+            else if (totalEnemies < 25)
+                enemySpeed = 20;
+
+            else if (totalEnemies < 20)
+                enemySpeed = 25;
+
+            else if (totalEnemies < 10)
+                enemySpeed = 30;
+
+            // Collision Detection 
+            CollisionDetection(player);
+
+            if (totalEnemies <= 0)
+            {
+                dispatcherTimer.Stop();
+                MessageBox.Show("You Win");
+            }
+        }
     }
 }
