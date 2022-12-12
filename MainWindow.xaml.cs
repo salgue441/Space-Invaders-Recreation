@@ -126,10 +126,103 @@ namespace SpaceInvaders
          * @return void
          */
         private void SpawnEnemyBullets(double x, double y)
-        { }
+        {
+            Rectangle newEnemyBullet = new Rectangle
+            {
+                Tag = "enemyBullet",
+                Height = 40,
+                Width = 15, 
+                Fill = Brushes.Yellow, 
+                Stroke = Brushes.Black, 
+                StrokeThickness = 5
+            };
 
+            // Placing the bullets
+            Canvas.SetTop(newEnemyBullet, y);
+            Canvas.SetLeft(newEnemyBullet, x);
+
+            // Adding the bullets to the canvas
+            GameCanvas.Children.Add(newEnemyBullet);
+        }
+
+        /**
+         * @brief
+         * Creates and spawns the enemies on the canvas.
+         * @param limit int The amount of enemies to spawn.
+         */
         private void SpawnEnemies(int limit)
-        { }
+        {
+            int enemiesLeft = 0;
+            totalEnemies = limit;
+
+            // Spawning the enemies
+            for (int i = 0; i < limit; i++)
+            {
+                // New enemy skin
+                ImageBrush enemySkin = new ImageBrush();
+
+                // Enemy Rectangle
+                Rectangle newEnemy = new Rectangle
+                {
+                    Tag = "enemy",
+                    Height = 45,
+                    Width = 45,
+                    Fill = enemySkin,
+                };
+
+                // Setting the enemy location
+                Canvas.SetTop(newEnemy, 10);
+                Canvas.SetLeft(newEnemy, enemiesLeft);
+
+                // Adding the enemy to the canvas
+                GameCanvas.Children.Add(newEnemy);
+
+                // Changing the enemiesLeft value
+                enemiesLeft -= 60;
+
+                // Adding 1 to the images counter
+                enemies++;
+
+                if (enemies > 8)
+                    enemies = 1;
+
+                // Setting the enemy skin
+                switch (enemies)
+                {
+                    case 1:
+                        enemySkin.ImageSource = new BitmapImage(new Uri("pack://application:,,,/Images/enemy1.png"));
+                        break;
+                        
+                    case 2:
+                        enemySkin.ImageSource = new BitmapImage(new Uri("pack://application:,,,/Images/enemy2.png"));
+                        break;
+                        
+                    case 3:
+                        enemySkin.ImageSource = new BitmapImage(new Uri("pack://application:,,,/Images/enemy3.png"));
+                        break;
+                        
+                    case 4:
+                        enemySkin.ImageSource = new BitmapImage(new Uri("pack://application:,,,/Images/enemy4.png"));
+                        break;
+
+                    case 5:
+                        enemySkin.ImageSource = new BitmapImage(new Uri("pack://application:,,,/Images/enemy5.png"));
+                        break;
+
+                    case 6:
+                        enemySkin.ImageSource = new BitmapImage(new Uri("pack://application:,,,/Images/enemy6.png"));
+                        break;
+
+                    case 7:
+                        enemySkin.ImageSource = new BitmapImage(new Uri("pack://application:,,,/Images/enemy7.png"));
+                        break;
+
+                    case 8:
+                        enemySkin.ImageSource = new BitmapImage(new Uri("pack://application:,,,/Images/enemy8.png"));
+                        break;
+                }
+            }
+        }
 
         private void gameEngine(object sender, EventArgs e)
         { }
