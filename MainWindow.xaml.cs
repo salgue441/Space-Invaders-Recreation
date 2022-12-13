@@ -25,6 +25,7 @@ namespace SpaceInvaders
         // Movement variables
         private bool GoLeft = false, GoRight = false;
         private int PlayerSpeed = 10;
+        private int PlayerLives = 4;
 
         // Score variable
         private int Score = 0;
@@ -64,7 +65,7 @@ namespace SpaceInvaders
 
             // Randomizing the enemy generation
             Random rng = new Random();
-            SpawnEnemies(rng.Next(30, 100));
+            SpawnEnemies(rng.Next(150, 1000));
 
             GameCanvas.Focus();
         }
@@ -390,7 +391,7 @@ namespace SpaceInvaders
                     // Moving the enemy left
                     Canvas.SetLeft(Enemy, Canvas.GetLeft(Enemy) + EnemySpeed);
 
-                    if (Canvas.GetLeft(Enemy) > 820)
+                    if (Canvas.GetLeft(Enemy) > 1205)
                     {
                         Canvas.SetLeft(Enemy, -80);
                         Canvas.SetTop(Enemy, Canvas.GetTop(Enemy) + (Enemy.Height + 10));
@@ -423,7 +424,7 @@ namespace SpaceInvaders
                     // Moving the bullets down
                     Canvas.SetTop(EnemyBullet, Canvas.GetTop(EnemyBullet) + 10);
 
-                    if (Canvas.GetTop(EnemyBullet) > 480)
+                    if (Canvas.GetTop(EnemyBullet) > 720)
                         ItemsToRemove.Add(EnemyBullet);
                 }
             }
@@ -469,7 +470,7 @@ namespace SpaceInvaders
 
                 if (IsEnemy(i))
                 {
-                    Rect EnemyHitBox = new Rect(Canvas.GetLeft(i), Canvas.GetTop(i), 
+                    Rect EnemyHitBox = new Rect(Canvas.GetLeft(i), Canvas.GetTop(i),
                         i.Width, i.Height);
 
                     if (PlayerHitBox.IntersectsWith(EnemyHitBox))
@@ -482,7 +483,17 @@ namespace SpaceInvaders
                         i.Width, i.Height);
 
                     if (PlayerHitBox.IntersectsWith(EnemyBulletHitBox))
-                        LooseGameOver();                
+                    {
+                        // Decrease player lives
+                        PlayerLives -= 1;
+
+                        // Remove the bullet
+                        ItemsToRemove.Add(i);
+
+                        // Check if the player is dead
+                        if (PlayerLives == 0)
+                            LooseGameOver();
+                    }
                 }
             }
         }
@@ -539,6 +550,7 @@ namespace SpaceInvaders
         private void GameEngine(object sender, EventArgs e)
         {
             EnemiesLeft.Content = "Invaders left:  " + TotalEnemies;
+            PlayersLives.Content = "Lives: " + PlayerLives;
             ScoreLabel.Content = "Score: " + Score;
 
             PlayerMovement();

@@ -5,10 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SpaceInvaders"
         mc:Ignorable="d"
-        Title="Space Invaders Recreation" Height="500" Width="800" FocusManager.FocusedElement="{Binding ElementName=GameCanvas}">
+        Title="Space Invaders Recreation" Height="720" Width="1200" FocusManager.FocusedElement="{Binding ElementName=GameCanvas}">
     <Canvas Name="GameCanvas" Background="Black" Focusable="True" KeyDown="IsKeyDown" KeyUp="IsKeyUp">
-        <Label Foreground="White" Name="EnemiesLeft" FontSize="16" FontWeight="Bold">Enemies Left: </Label>
-        <Label Foreground="White" Name="ScoreLabel" FontSize="16" FontWeight="Bold" Canvas.Left="692" HorizontalAlignment="Left" VerticalAlignment="Center">Score: </Label>
-        <Rectangle Name="PlayerRec" Fill="White" Height="65" Width="55" Canvas.Left="568" Canvas.Top="394" />
+        <Label Foreground="White" Name="EnemiesLeft" FontSize="16" FontWeight="Bold">Enemies Left:</Label>
+        <Label Foreground="White" Name="PlayersLives" FontSize="16" FontWeight="Bold" HorizontalAlignment="Left" Canvas.Left="574" VerticalAlignment="Center">Lives:</Label>
+        <Label Foreground="White" Name="ScoreLabel" FontSize="16" FontWeight="Bold" Canvas.Left="1079" HorizontalAlignment="Left" VerticalAlignment="Center">Score:</Label>
+        <Rectangle Name="PlayerRec" Fill="White" Height="65" Width="55" Canvas.Left="550" Canvas.Top="610" />
     </Canvas>
 </Window>
