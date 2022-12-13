@@ -8,7 +8,7 @@
         Title="Space Invaders Recreation" Height="500" Width="800" FocusManager.FocusedElement="{Binding ElementName=GameCanvas}">
     <Canvas Name="GameCanvas" Background="Black" Focusable="True" KeyDown="IsKeyDown" KeyUp="IsKeyUp">
         <Label Foreground="White" Name="EnemiesLeft" FontSize="16" FontWeight="Bold">Enemies Left: </Label>
-        <Label Foreground="White" Name="ScoreLabel" FontSize="16" FontWeight="Bold" Canvas.Left="719">Score: </Label>
+        <Label Foreground="White" Name="ScoreLabel" FontSize="16" FontWeight="Bold" Canvas.Left="692" HorizontalAlignment="Left" VerticalAlignment="Center">Score: </Label>
         <Rectangle Name="PlayerRec" Fill="White" Height="65" Width="55" Canvas.Left="568" Canvas.Top="394" />
     </Canvas>
 </Window>

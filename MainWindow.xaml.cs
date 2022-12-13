@@ -437,7 +437,7 @@ namespace SpaceInvaders
          */
         public void CollissionDetection()
         {
-            Rect Player = new Rect(Canvas.GetLeft(PlayerRec), Canvas.GetTop(PlayerRec),
+            Rect PlayerHitBox = new Rect(Canvas.GetLeft(PlayerRec), Canvas.GetTop(PlayerRec),
                 PlayerRec.Width, PlayerRec.Height);
 
             // Player Bullet Collision
@@ -445,45 +445,48 @@ namespace SpaceInvaders
             {
                 if (IsBullet(i))
                 {
-                    Rect Bullet = new Rect(Canvas.GetLeft(i), Canvas.GetTop(i),
+                    Rect BulletHitBox = new Rect(Canvas.GetLeft(i), Canvas.GetTop(i),
                         i.Width, i.Height);
 
                     foreach (var j in GameCanvas.Children.OfType<Rectangle>())
                     {
-                        Rect Enemy = new Rect(Canvas.GetLeft(j), Canvas.GetTop(j),
-                            j.Width, j.Height);
-
-                        if (Bullet.IntersectsWith(Enemy))
+                        if (IsEnemy(j))
                         {
-                            ItemsToRemove.Add(i);
-                            ItemsToRemove.Add(j);
+                            Rect EnemyHitBox = new Rect(Canvas.GetLeft(j), Canvas.GetTop(j),
+                                j.Width, j.Height);
 
-                            TotalEnemies -= 1;
-                            Score++;
+                            if (BulletHitBox.IntersectsWith(EnemyHitBox))
+                            {
+                                ItemsToRemove.Add(i);
+                                ItemsToRemove.Add(j);
+
+                                TotalEnemies -= 1;
+                                Score += 1;
+                            }
                         }
                     }
                 }
 
                 if (IsEnemy(i))
                 {
-                    Rect Enemy = new Rect(Canvas.GetLeft(i), Canvas.GetTop(i), 
+                    Rect EnemyHitBox = new Rect(Canvas.GetLeft(i), Canvas.GetTop(i), 
                         i.Width, i.Height);
 
-                    if (Player.IntersectsWith(Enemy))
+                    if (PlayerHitBox.IntersectsWith(EnemyHitBox))
                         LooseGameOver();
                 }
 
                 if (IsEnemyBullet(i))
                 {
-                    Rect EnemyBullet = new Rect(Canvas.GetLeft(i), Canvas.GetTop(i),
+                    Rect EnemyBulletHitBox = new Rect(Canvas.GetLeft(i), Canvas.GetTop(i),
                         i.Width, i.Height);
 
-                    if (Player.IntersectsWith(EnemyBullet))
+                    if (PlayerHitBox.IntersectsWith(EnemyBulletHitBox))
                         LooseGameOver();                
                 }
             }
         }
-
+        
         /**
          * @brief
          * Shows the player a loose message and stops the game. 
@@ -504,6 +507,8 @@ namespace SpaceInvaders
          */
         private void WinGameOver()
         {
+            EnemiesLeft.Content = "Invaders left: 0";
+            
             GameTimer.Stop();
             MessageBox.Show("Game Over! You Win");
         }
