@@ -19,391 +19,532 @@ namespace SpaceInvaders
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
+    
     public partial class MainWindow : Window
     {
-        // Variables
-        bool goLeft, goRight = false;                          // Movement
-        
-        List<Rectangle> itemsToRemove = new List<Rectangle>(); // Garbage collector
-        ImageBrush playerSkin = new ImageBrush();              // Player skin image
+        // Movement variables
+        private bool GoLeft = false, GoRight = false;
+        private int PlayerSpeed = 10;
 
-        int enemies = 0;                                       // Enemy counter
-        int totalEnemies;                                      // Total enemies
-        int enemySpeed = 10;                                   // Enemy speed
+        // Score variable
+        private int Score = 0;
 
-        int bulletTimer;                                       // Bullet timer
-        int bulletTimerLimit = 90;                             // Bullet timer limit
+        // Enemy variables
+        private int EnemyImages = 0;                    // Holds the number of enemy images
+        private int TotalEnemies;                       // Saves the total number of enemies
+        private int EnemySpeed = 5;                     // Base speed of the enemies
+        private int EnemyBulletTimer;                   // Enemy bullet timer
+        private int EnemyBulletTimerLimit = 90;         // Limit and Frequency for enemie's bullet
 
-        // Timer
-        DispatcherTimer dispatcherTimer = new DispatcherTimer(); 
+        // Bullet variables
+        private bool BulletFired = false;               // Checks if the bullet is fired
+        private int BulletSpeed = 10;                   // Speed of the bullet
+
+        // Garbage Collector
+        private List<Rectangle> ItemsToRemove = new List<Rectangle>();
+
+        // Dispatcher timer class
+        private DispatcherTimer GameTimer = new DispatcherTimer();
+
+        // Player Skin
+        private ImageBrush PlayerSkin = new ImageBrush();
 
         public MainWindow()
         {
             InitializeComponent();
 
-            // Configuring the Timer and Starting it.
-            dispatcherTimer.Tick += gameEngine;
-            dispatcherTimer.Interval = TimeSpan.FromMilliseconds(20);
-            dispatcherTimer.Start();
+            // Set the game timer
+            GameTimer.Tick += GameEngine;
+            GameTimer.Interval = TimeSpan.FromMilliseconds(20);
+            GameTimer.Start();
 
-            // PlayerSkin
-            playerSkin.ImageSource = new BitmapImage(new Uri("pack://application:,,,/Images/player.png"));
-            PlayerRec.Fill = playerSkin;
+            // Player Skin
+            PlayerSkin.ImageSource = new BitmapImage(new Uri("pack://application:,,,/Images/player.png"));
+            PlayerRec.Fill = PlayerSkin;
 
-            // Making the enemies (spawns a random amount of enemies)
+            // Randomizing the enemy generation
             Random rng = new Random();
             SpawnEnemies(rng.Next(30, 100));
+
+            GameCanvas.Focus();
         }
 
         /**
-         * @brief
-         * Handles the movement of the player when AD keys are pressed.
+         * @brief 
+         * Handles the movement of the player when the A & D keys are pressed. 
          * @param sender The object that sent the event.
          * @param e The event arguments.
-         * return void 
+         * @return void 
          */
         private void IsKeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.D)
-                goRight = true;
-
             if (e.Key == Key.A)
-                goLeft = true;
+                GoLeft = true;
+
+            if (e.Key == Key.D)
+                GoRight = true;
         }
 
         /**
          * @brief
-         * Stops the movement of the player when AD keys are released.
+         * Handles the movement of the player when the A & D keys are released.
          * @param sender The object that sent the event.
          * @param e The event arguments.
          * @return void
          */
         private void IsKeyUp(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.D)
-                goRight = false;
-
             if (e.Key == Key.A)
-                goLeft = false;
+                GoLeft = false;
 
-            MakeBullet(sender, e);
+            if (e.Key == Key.D)
+                GoRight = false;
+
+            // Gives the player the ability to shoot
+            if (e.Key == Key.Space)
+                MakeBullet();
         }
 
         /**
          * @brief
-         * Makes the player's bullet.
-         * @param sender The object that sent the event.
-         * @param e The event arguments.
+         * Handles the generation of Player's bullet. 
+         * @param none
          * @return void
          */
-        private void MakeBullet(object sender, KeyEventArgs e)
+        private void MakeBullet()
         {
-            if (e.Key == Key.Space && bulletTimer > bulletTimerLimit)
+            // Clearing the bullet from the canvas
+            ItemsToRemove.Clear();
+
+            // Creates a new bullet
+            Rectangle NewBullet = new Rectangle
             {
-                Rectangle newBullet = new Rectangle
+                Tag = "Bullet",
+                Height = 20,
+                Width = 5,
+                Fill = Brushes.White,
+                Stroke = Brushes.Red
+            };
+
+            // Sets the bullet's position
+            Canvas.SetTop(NewBullet, Canvas.GetTop(PlayerRec) - NewBullet.Height);
+            Canvas.SetLeft(NewBullet, Canvas.GetLeft(PlayerRec) + PlayerRec.Width / 2);
+
+            // Adds the bullet to the canvas
+            GameCanvas.Children.Add(NewBullet);   
+        }
+
+        /**
+         * @brief
+         * Handles the spawning of the enemies. The number of enemies spawned is determined
+         * by the parameter.
+         * @param EnemyLimit The number of enemies to be spawned.
+         * @return void
+         */
+        private void SpawnEnemies(int EnemyLimit)
+        {
+            int EnemiesLeft = 0;
+            TotalEnemies = EnemyLimit;
+
+            for (int i = 0; i < EnemyLimit; i++)
+            {
+                // New skin for the enemy rectangle
+                ImageBrush EnemySkin = new ImageBrush();
+
+                // Making a new Enemy Rectangle
+                Rectangle NewEnemy = new Rectangle
                 {
-                    Tag = "bullet",
-                    Height = 20,
-                    Width = 5,
-                    Fill = Brushes.White,
-                    Stroke = Brushes.Red
+                    Tag = "Enemy",
+                    Height = 45,
+                    Width = 45,
+                    Fill = EnemySkin,
                 };
 
-                // Placing the bullet where the player is
-                Canvas.SetTop(newBullet, Canvas.GetTop(PlayerRec) - newBullet.Height);
-                Canvas.SetLeft(newBullet, Canvas.GetLeft(PlayerRec) + PlayerRec.Width / 2);
+                // Setting the enemy's position
+                Canvas.SetTop(NewEnemy, 25);           // Top location
+                Canvas.SetLeft(NewEnemy, EnemiesLeft); // Left location
 
-                // Adding the bullet to the canvas
-                GameCanvas.Children.Add(newBullet);
+                // Adding the enemy to the canvas
+                GameCanvas.Children.Add(NewEnemy);
+
+                // Incrementing the enemy's left position
+                EnemiesLeft -= 60;
+
+                // Incrementing the total number of enemies
+                EnemyImages++;
+
+                // Randomizing the skin selection
+                if (EnemyImages > 8)
+                {
+                    Random rng_images = new Random();
+                    EnemyImages = rng_images.Next(1, 8);
+                    Console.WriteLine(rng_images);
+                }
+
+                RandomizeEnemySkin(EnemyImages, EnemySkin);
             }
         }
 
         /**
          * @brief
-         * Makes the bullets that fires back at the player. 
-         * @param x double The x position of the bullet.
-         * @param y double The y position of the bullet.
+         * Randomizes the skin selection for the enemies.
+         * @param EnemyImages The number of enemies that have been spawned.
+         * @param EnemySkin The skin of the enemy.
+         * @return void
+         */
+        private void RandomizeEnemySkin(int EnemyImages, ImageBrush EnemySkin)
+        {   
+            switch (EnemyImages)
+            {
+                case 1:
+                    EnemySkin.ImageSource 
+                        = new BitmapImage(new Uri("pack://application:,,,/Images/invader1.gif"));
+                    break;
+
+                case 2:
+                    EnemySkin.ImageSource
+                        = new BitmapImage(new Uri("pack://application:,,,/Images/invader2.gif"));
+                    break;
+
+                case 3:
+                    EnemySkin.ImageSource 
+                        = new BitmapImage(new Uri("pack://application:,,,/Images/invader3.gif"));
+                    break;
+
+                case 4:
+                    EnemySkin.ImageSource 
+                        = new BitmapImage(new Uri("pack://application:,,,/Images/invader4.gif"));
+                    break;
+
+                case 5:
+                    EnemySkin.ImageSource 
+                        = new BitmapImage(new Uri("pack://application:,,,/Images/invader5.gif"));
+                    break;
+
+                case 6:
+                    EnemySkin.ImageSource 
+                        = new BitmapImage(new Uri("pack://application:,,,/Images/invader6.gif"));
+                    break;
+
+                case 7:
+                    EnemySkin.ImageSource 
+                        = new BitmapImage(new Uri("pack://application:,,,/Images/invader7.gif"));
+                    break;
+
+                case 8:
+                    EnemySkin.ImageSource 
+                        = new BitmapImage(new Uri("pack://application:,,,/Images/invader8.gif"));
+                    break;
+            }
+        }
+
+        /**
+         * @brief 
+         * Spawns enemy bullets. 
+         * @param x X position of the Bullet.
+         * @param y Y position of the Bullet.
          * @return void
          */
         private void SpawnEnemyBullets(double x, double y)
         {
             Rectangle newEnemyBullet = new Rectangle
             {
-                Tag = "enemyBullet",
+                Tag = "EnemyBullet",
                 Height = 40,
-                Width = 15, 
-                Fill = Brushes.Yellow, 
-                Stroke = Brushes.Black, 
+                Width = 15,
+                Fill = Brushes.Yellow,
+                Stroke = Brushes.Black,
                 StrokeThickness = 5
             };
 
-            // Placing the bullets
+            // Setting the bullet's position
             Canvas.SetTop(newEnemyBullet, y);
             Canvas.SetLeft(newEnemyBullet, x);
 
-            // Adding the bullets to the canvas
+            // Adding the bullet to the canvas
             GameCanvas.Children.Add(newEnemyBullet);
         }
 
         /**
          * @brief
-         * Creates and spawns the enemies on the canvas.
-         * @param limit int The amount of enemies to spawn.
+         * Checks if the Rectangle is a player's bullet. 
+         * @param Bullet Rectangle to be checked.
+         * @return true if the Rectangle is a bullet, false otherwise.
          */
-        private void SpawnEnemies(int limit)
+        private bool IsBullet(Rectangle Bullet)
         {
-            int enemiesLeft = 0;
-            totalEnemies = limit;
+            if (Bullet is Rectangle && (string)Bullet.Tag == "Bullet")
+                return true;
 
-            // Spawning the enemies
-            for (int i = 0; i < limit; i++)
+            return false;
+        }
+
+        /**
+         * @brief
+         * Checks if the Rectangle is an Enemy. 
+         * @param Enemy Rectangle to be checked. 
+         * @return true if the Rectangle is an Enemy, false otherwise.
+         */
+        public bool IsEnemy(Rectangle Enemy)
+        {
+            if (Enemy is Rectangle && (string)Enemy.Tag == "Enemy")
+                return true;
+
+            return false;
+        }
+
+        /**
+         * @brief
+         * Checks if the Rectangle is an Enemy Bullet. 
+         * @param EnemyBullet Rectangle to be checked
+         * @return true if the Rectangle is an Enemy Bullet, false otherwise.
+         */
+        public bool IsEnemyBullet(Rectangle EnemyBullet)
+        {
+            if (EnemyBullet is Rectangle && (string)EnemyBullet.Tag == "EnemyBullet")
+                return true;
+
+            return false;
+        }
+
+        /**
+         * @brief
+         * Movemet Script for the player. 
+         * @param none
+         * @return void
+         */
+        private void PlayerMovement()
+        {
+            if (GoLeft && Canvas.GetLeft(PlayerRec) > 0)
+                Canvas.SetLeft(PlayerRec, Canvas.GetLeft(PlayerRec) - PlayerSpeed);
+
+            else if (GoRight && Canvas.GetLeft(PlayerRec) + 90 < Application.Current.MainWindow.Width)
+                Canvas.SetLeft(PlayerRec, Canvas.GetLeft(PlayerRec) + PlayerSpeed);
+        }
+
+        /**
+         * @brief
+         * Handles the Player's Bullet Movement. 
+         * @param none
+         * @return void
+         */
+        private void BulletMovement()
+        {
+            // Looping through all the bullets
+            foreach (var Bullet in GameCanvas.Children.OfType<Rectangle>())
             {
-                // New enemy skin
-                ImageBrush enemySkin = new ImageBrush();
-
-                // Enemy Rectangle
-                Rectangle newEnemy = new Rectangle
+                if (IsBullet(Bullet))
                 {
-                    Tag = "enemy",
-                    Height = 45,
-                    Width = 45,
-                    Fill = enemySkin,
-                };
+                    // Moving the bullet up
+                    Canvas.SetTop(Bullet, Canvas.GetTop(Bullet) - 20);
 
-                // Setting the enemy location
-                Canvas.SetTop(newEnemy, 10);
-                Canvas.SetLeft(newEnemy, enemiesLeft);
-
-                // Adding the enemy to the canvas
-                GameCanvas.Children.Add(newEnemy);
-
-                // Changing the enemiesLeft value
-                enemiesLeft -= 60;
-
-                // Adding 1 to the images counter
-                enemies++;
-
-                if (enemies > 8)
-                    enemies = 1;
-
-                // Setting the enemy skin
-                switch (enemies)
-                {
-                    // D:\Developer\SpaceInvaders\Images\invader1.gif
-                    case 1:
-                        enemySkin.ImageSource = new BitmapImage(new Uri("pack://application:,,,/Images/invader1.gif"));
-                        break;
-                        
-                    case 2:
-                        enemySkin.ImageSource = new BitmapImage(new Uri("pack://application:,,,/Images/invader2.gif"));
-                        break;
-                        
-                    case 3:
-                        enemySkin.ImageSource = new BitmapImage(new Uri("pack://application:,,,/Images/invader3.gif"));
-                        break;
-                        
-                    case 4:
-                        enemySkin.ImageSource = new BitmapImage(new Uri("pack://application:,,,/Images/invader4.gif"));
-                        break;
-
-                    case 5:
-                        enemySkin.ImageSource = new BitmapImage(new Uri("pack://application:,,,/Images/invader5.gif"));
-                        break;
-
-                    case 6:
-                        enemySkin.ImageSource = new BitmapImage(new Uri("pack://application:,,,/Images/invader6.gif"));
-                        break;
-
-                    case 7:
-                        enemySkin.ImageSource = new BitmapImage(new Uri("pack://application:,,,/Images/invader7.gif"));
-                        break;
-
-                    case 8:
-                        enemySkin.ImageSource = new BitmapImage(new Uri("pack://application:,,,/Images/invader8.gif"));
-                        break;
+                    // Checking if the bullet is out of the canvas
+                    if (Canvas.GetTop(Bullet) < 10)
+                        ItemsToRemove.Add(Bullet);
                 }
             }
         }
 
         /**
          * @brief
-         * Checks if a rectangle is a bullet. 
-         * @param bullet Rectangle to be checked. 
-         * @return true if the Rectangle is a bullet, false otherwise.
+         * Determines the enemy's speed based on the amount left. 
+         * @param none
+         * @return void
          */
-        private bool IsBullet(Rectangle bullet)
+        public void EnemySpeedHandler()
         {
-            if (bullet is Rectangle && (string)bullet.Tag == "bullet")
-                return true;
+            if (TotalEnemies < 100 || TotalEnemies < 50)
+                EnemySpeed = 15;
 
-            return false;
+            else if (TotalEnemies < 40)
+                EnemySpeed = 18;
+
+            else if (TotalEnemies < 30)
+                EnemySpeed = 21;
+
+            else if (TotalEnemies < 20)
+                EnemySpeed = 24;
+
+            else if (TotalEnemies < 10)
+                EnemySpeed = 27;
+
+            else if (TotalEnemies < 5)
+                EnemySpeed = 30;
+        }
+
+        /**
+         * @brief
+         * Handles the Enemy movement. 
+         * @param none
+         * @return void
+         */
+        public void EnemyMovement()
+        {
+            EnemySpeedHandler();
+
+            // Looping through all the enemies
+            foreach (var Enemy in GameCanvas.Children.OfType<Rectangle>())
+            {          
+                if (IsEnemy(Enemy))
+                {
+                    // Moving the enemy left
+                    Canvas.SetLeft(Enemy, Canvas.GetLeft(Enemy) + EnemySpeed);
+
+                    if (Canvas.GetLeft(Enemy) > 820)
+                    {
+                        Canvas.SetLeft(Enemy, -80);
+                        Canvas.SetTop(Enemy, Canvas.GetTop(Enemy) + (Enemy.Height + 10));
+                    }
+
+                }
+            }
         }
         
         /**
          * @brief
-         * Checks if a Rectangle is an enemy.
-         * @param enemy Rectangle to be checked.
-         * @return true if the Rectangle is an enemy, false otherwise.
-         */
-        private bool IsEnemy(Rectangle enemy)
-        {
-            if (enemy is Rectangle && (string)enemy.Tag == "enemy")
-                return true;
-
-            return false;
-        }
-
-        /**
-         * @brief
-         * Checks if a Rectangle is an enemyBullet. 
-         * @param enemyBullet Rectangle to be checked.
-         * @return true if the Rectangle is an enemyBullet, false otherwise.
-         */
-        private bool IsEnemyBullet(Rectangle enemyBullet)
-        {
-            if (enemyBullet is Rectangle && (string)enemyBullet.Tag == "enemyBullet")
-                return true;
-
-            return false;
-        }
-
-        /**
-         * @brief
-         * Handles Collision Detection for the GameEngine function. 
-         * @param player Rect object to be checked for collisions.
+         * Handles the Enemy Bullet Generation and Movement.
+         * @param none
          * @return void
          */
-        private void CollisionDetection(Rect player)
+        public void EnemyBulletMovement()
         {
-            foreach (var x in GameCanvas.Children.OfType<Rectangle>())
+            EnemyBulletTimer -= 3;
+
+            if (EnemyBulletTimer < 0)
             {
-                if (IsBullet(x))
+                SpawnEnemyBullets((Canvas.GetLeft(PlayerRec) + 20), 10);
+                EnemyBulletTimer = EnemyBulletTimerLimit;
+            }
+
+            foreach (var EnemyBullet in GameCanvas.Children.OfType<Rectangle>())
+            {
+                if (IsEnemyBullet(EnemyBullet))
                 {
-                    Canvas.SetTop(x, Canvas.GetTop(x) - 20);
-                    Rect bullet = new Rect(Canvas.GetLeft(x), Canvas.GetTop(x), x.Width, x.Height);
+                    // Moving the bullets down
+                    Canvas.SetTop(EnemyBullet, Canvas.GetTop(EnemyBullet) + 10);
 
-                    if (Canvas.GetTop(x) < 10)
-                        itemsToRemove.Add(x);
+                    if (Canvas.GetTop(EnemyBullet) > 480)
+                        ItemsToRemove.Add(EnemyBullet);
+                }
+            }
+        }
 
-                    foreach(var y in GameCanvas.Children.OfType<Rectangle>())
+        /**
+         * @brief
+         * Handles the collision between the Rectangles in the game.
+         * @param none
+         * @return void
+         */
+        public void CollissionDetection()
+        {
+            Rect Player = new Rect(Canvas.GetLeft(PlayerRec), Canvas.GetTop(PlayerRec),
+                PlayerRec.Width, PlayerRec.Height);
+
+            // Player Bullet Collision
+            foreach (var i in GameCanvas.Children.OfType<Rectangle>())
+            {
+                if (IsBullet(i))
+                {
+                    Rect Bullet = new Rect(Canvas.GetLeft(i), Canvas.GetTop(i),
+                        i.Width, i.Height);
+
+                    foreach (var j in GameCanvas.Children.OfType<Rectangle>())
                     {
-                        if (IsEnemy(y))
+                        Rect Enemy = new Rect(Canvas.GetLeft(j), Canvas.GetTop(j),
+                            j.Width, j.Height);
+
+                        if (Bullet.IntersectsWith(Enemy))
                         {
-                            Rect enemy = new Rect(Canvas.GetLeft(y), Canvas.GetTop(y), y.Width, y.Height);
+                            ItemsToRemove.Add(i);
+                            ItemsToRemove.Add(j);
 
-                            if (bullet.IntersectsWith(enemy))
-                            {
-                                itemsToRemove.Add(x);
-                                itemsToRemove.Add(y);
-
-                                totalEnemies -= 1;
-                            }
-                        }
-                    }
-
-                    if (IsEnemy(x))
-                    {
-                        // Moving it toward the right side of the screen
-                        Canvas.SetLeft(x, Canvas.GetLeft(x) + enemySpeed);
-
-                        if (Canvas.GetLeft(x) > 820)
-                        {
-                            Canvas.SetLeft(x, -80);
-                            Canvas.SetTop(x, Canvas.GetTop(x) + (x.Height + 10));
-                        }
-
-                        Rect enemy = new Rect(Canvas.GetLeft(x), Canvas.GetTop(x), x.Width, x.Height);
-
-                        // Checking for player collision with enemy objects.s
-                        if (player.IntersectsWith(enemy))
-                        {
-                            dispatcherTimer.Stop();
-                            MessageBox.Show("You Died.");
-                        }
-                    }
-
-                    if (IsEnemyBullet(x))
-                    {
-                        Canvas.SetTop(x, Canvas.GetTop(x) + 10);
-
-                        if (Canvas.GetTop(x) > 480)
-                            itemsToRemove.Add(x);
-
-                        Rect enemyBullets = new Rect(Canvas.GetLeft(x), Canvas.GetTop(x), x.Width, x.Height);
-
-                        // Checking for player's collision with enemyBullet objects.
-                        if (enemyBullets.IntersectsWith(player))
-                        {
-                            dispatcherTimer.Stop();
-                            MessageBox.Show("You Died.");
+                            TotalEnemies -= 1;
+                            Score++;
                         }
                     }
                 }
 
-                // Garbage Collection Loop
-                foreach (Rectangle y in itemsToRemove)
-                    GameCanvas.Children.Remove(y);
+                if (IsEnemy(i))
+                {
+                    Rect Enemy = new Rect(Canvas.GetLeft(i), Canvas.GetTop(i), 
+                        i.Width, i.Height);
+
+                    if (Player.IntersectsWith(Enemy))
+                        LooseGameOver();
+                }
+
+                if (IsEnemyBullet(i))
+                {
+                    Rect EnemyBullet = new Rect(Canvas.GetLeft(i), Canvas.GetTop(i),
+                        i.Width, i.Height);
+
+                    if (Player.IntersectsWith(EnemyBullet))
+                        LooseGameOver();                
+                }
             }
         }
 
         /**
          * @brief
-         * Game Engine Event Handler. This event will trigger every 20ms.
-         * @param sender The object that sent the event.
-         * @param e The event arguments.
+         * Shows the player a loose message and stops the game. 
+         * @param none
          * @return void
          */
-        private void gameEngine(object sender, EventArgs e)
+        private void LooseGameOver()
         {
-            Rect player = new Rect(Canvas.GetLeft(PlayerRec), Canvas.GetTop(PlayerRec), 
-                PlayerRec.Width, PlayerRec.Height);
+            GameTimer.Stop();
+            MessageBox.Show("Game Over! You loose");
+        }
 
-            // Showing the remaining enemies
-            EnemiesLeft.Content = "Enemies Left: " + totalEnemies;
+        /**
+         * @brief
+         * Shows the player a winning message and stops the game. 
+         * @param none
+         * @return void
+         */
+        private void WinGameOver()
+        {
+            GameTimer.Stop();
+            MessageBox.Show("Game Over! You Win");
+        }
 
-            // Player movement
-            if (goLeft && Canvas.GetLeft(PlayerRec) > 0)
-                Canvas.SetLeft(PlayerRec, Canvas.GetLeft(PlayerRec) - 10);
+        /**
+         * @brief
+         * Checks for every rectangle that has been added to the itemsToRemove list
+         * @param none
+         * @return void
+         */
+        private void GargabeCollection()
+        {
+            // Garbage collection loop
+            foreach (Rectangle GarbageItems in ItemsToRemove)
+                GameCanvas.Children.Remove(GarbageItems);
+        }
 
-            else if (goRight && Canvas.GetLeft(PlayerRec) + 80 < Application.Current.MainWindow.Width)
-                Canvas.SetLeft(PlayerRec, Canvas.GetLeft(PlayerRec) + 10);
 
-            // Bullet timer
-            bulletTimer -= 3;
+        /**
+         * @brief
+         * Game's logic. Calls the respective methods for enemy movement, bullet movement,
+         * enemy's bullet movement, player movement, and collision detection. This function
+         * is called every 20 milliseconds.
+         * @param sender The object that called the method.
+         * @param e The event that called the method.
+         * @return void
+         */
+        private void GameEngine(object sender, EventArgs e)
+        {
+            EnemiesLeft.Content = "Invaders left:  " + TotalEnemies;
+            ScoreLabel.Content = "Score: " + Score;
 
-            if (bulletTimer < 0)
-            {
-                SpawnEnemyBullets((Canvas.GetLeft(PlayerRec) + 20), 10);
-                bulletTimer = bulletTimerLimit;
-            }
+            PlayerMovement();
+            BulletMovement();
+            EnemyMovement();
+            EnemyBulletMovement();
+            CollissionDetection();
+            GargabeCollection();
 
-            // Increasing enemies speed when the number decreases
-            if (totalEnemies < 75)
-                enemySpeed = 8;
-
-            else if (totalEnemies < 50)
-                enemySpeed = 10;
-
-            else if (totalEnemies < 40)
-                enemySpeed = 15;
-
-            else if (totalEnemies < 25)
-                enemySpeed = 20;
-
-            else if (totalEnemies < 20)
-                enemySpeed = 25;
-
-            else if (totalEnemies < 10)
-                enemySpeed = 30;
-
-            // Collision Detection 
-            CollisionDetection(player);
-
-            if (totalEnemies <= 0)
-            {
-                dispatcherTimer.Stop();
-                MessageBox.Show("You Win");
-            }
+            if (TotalEnemies == 0)
+                WinGameOver();
         }
     }
 }
